@@ -1,0 +1,83 @@
+##
+##
+# Declare the routing rules to reach the backend #
+##
+##
+
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: httproute-whoami
+  namespace: traefik
+spec:
+  parentRefs:
+  - name: traefik-gateway
+    kind: Gateway
+    group: gateway.networking.k8s.io
+    sectionName: web
+  hostnames:
+    - "*.docker.localhost"
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: basic-auth
+---
+kind: HTTPRoute
+apiVersion: gateway.networking.k8s.io/v1
+metadata:
+  name: httpsroute-whoami
+  namespace: traefik
+spec:
+  parentRefs:
+    # Attach the route to the by-default Traefik Gateway
+    - name: traefik-gateway
+      kind: Gateway
+      sectionName: websecure
+      group: gateway.networking.k8s.io
+  # Define the hostname
+  hostnames:
+    - "whoami-tls.docker.localhost"
+  rules:
+    - matches:
+        # Add a matcher on the path
+        - path:
+            type: Exact
+            value: /whoami
+      backendRefs:
+        - name: whoami-tls
+          port: 8443
+          weight: 1
+          kind: Service
+          group: ""
+      filters:
+      - type: RequestHeaderModifier
+        requestHeaderModifier:
+          add:
+            - name: X-Gateway-Controller
+              value: "Traefik for sure!"
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: basic-auth
+  namespace: traefik
+spec:
+  basicAuth:
+    secret: secret-basic-auth
+    realm: "Gateway API BASIC Auth"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret-basic-auth
+  namespace: traefik
+type: kubernetes.io/basic-auth
+stringData:
+  username: admin # required field for kubernetes.io/basic-auth
+  password: admin # required field for kubernetes.io/basic-auth

@@ -1,0 +1,19 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: traefik-gateway-tls
+  namespace: traefik
+spec:
+  gatewayClassName: traefik
+  listeners:
+    - name: websecure-tcp
+      port: 8443
+      protocol: TLS
+      hostname: "*.docker.localhost"
+      allowedRoutes:
+        namespaces:
+          from: Same
+        kinds:
+        - kind: TLSRoute
+      tls:
+        mode: Passthrough
