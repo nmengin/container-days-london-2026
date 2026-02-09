@@ -19,7 +19,17 @@ providers:
     enabled: true
     # BackendTLSPolicy is still experimental in Gateway API v1.2 - Standard soon (v1.3)
     experimentalChannel: true
+  # Enable the ingress NGINX provider (for migration demo)
+  kubernetesIngressNginx:
+    enabled: true
 
 gateway:
   # -- When providers.kubernetesGateway.enabled, deploy a default gateway
   enabled: false
+
+# Disable Metrics (No entrypoint and no prometheus configuration)
+ports:
+  metrics: null
+
+metrics:
+  prometheus: null

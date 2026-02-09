@@ -13,7 +13,7 @@ k3d cluster create gatewayapi --port 80:80@loadbalancer --port 443:443@loadbalan
 kubectl create namespace traefik
 
 # Install the experimental Gateway API CRDs (not installed by default with traefik)
-kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.1/experimental-install.yaml
+kubectl apply --server-side --force-conflicts -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.1/experimental-install.yaml
 
 # Store certificates
 kubectl create secret tls external-certs --namespace traefik --cert=./certs/external-crt.pem --key=./certs/external-key.pem
@@ -36,30 +36,63 @@ helm upgrade --install --namespace traefik traefik traefik/traefik -f ./traefik_
 ## TLSRoute demo
 
 ```bash
-kubectl apply -f ./manifests/tlsroute
+kubectl apply -f ./manifests/01-tlsroute
 
 curl -k https://whoami-tls.docker.localhost -v
 
-kubectl delete -f ./manifests/tlsroute
+kubectl delete -f ./manifests/01-tlsroute
 ```
 
 ## BackendTLSPolicy demo
 
 ```bash
-kubectl apply -f ./manifests/backendtlspolicy
+kubectl apply -f ./manifests/02-backendtlspolicy
 
 curl http://whoami-tls.docker.localhost/whoami -v
-curl -u admin:admin -L -v  http://whoami-tls.docker.localhost/whoami
+curl -u admin:admin -L -v  http://whoami-tls.docker.localhost/whoami --location-trusted
 
-kubectl delete -f ./manifests/backendtlspolicy
+kubectl delete -f ./manifests/02-backendtlspolicy
 ```
 
 ## ReferenceGrant demo
 
 ```bash
-kubectl apply -f ./manifests/referencegrant
+kubectl apply -f ./manifests/03-referencegrant
 
 curl https://whoami-tls.docker.localhost/ -v -k
 
-kubectl delete -f ./manifests/referencegrant
+kubectl delete -f ./manifests/03-referencegrant
+```
+
+## ReferenceGrant demo
+
+```bash
+## First step: Expose the backend with the Ingress
+
+```bash
+# Pre-requises
+kubectl apply -f manifests/04-migration/ingressclass
+kubectl apply -f manifests/04-migration/whoami
+kubectl apply -f manifests/04-migration/basic-auth
+
+# Deploy the ingress
+kubectl apply -f manifests/04-migration/ingress
+
+# Reach the backend successfully every second
+while true
+do
+    curl http://whoami-tls.docker.localhost -L  -u "user:password" --location-trusted
+    sleep 1
+done
+
+## Second step: Expose the backend with a HTTPRoute
+
+# Deploy the ingress
+kubectl apply -f manifests/04-migration/gatewayapi
+
+## The ingress has a bigger name than the HTTPRoute, so the priority is higher: Traefik still uses the Ingress for the routing
+
+# Delete the ingress
+kubectl delete -f manifests/04-migration/ingress
+
 ```

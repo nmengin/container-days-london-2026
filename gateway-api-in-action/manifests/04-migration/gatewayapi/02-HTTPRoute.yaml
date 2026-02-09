@@ -1,0 +1,56 @@
+##
+##
+# Declare the routing rules to reach the backend #
+##
+##
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: tls-redirect
+  namespace: traefik
+spec:
+  parentRefs:
+    # Attach the route to the by-default Traefik Gateway
+    # Select the listener 'web' to listen to HTTP requests
+    - name: traefik-gateway-http
+      kind: Gateway
+      group: gateway.networking.k8s.io
+      sectionName: web
+  hostnames:
+    - "whoami-tls.docker.localhost"
+  rules:
+    - filters:
+        # This filter allow you to redirect the request from HTTP to HTTPS
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: httproute-whoami
+  namespace: traefik
+spec:
+  parentRefs:
+    # Attach the route to the by-default Traefik Gateway
+    # Select the listener 'websecure' to listen to HTTPS requests
+    - name: traefik-gateway-http
+      kind: Gateway
+      group: gateway.networking.k8s.io
+      sectionName: websecure
+  hostnames:
+    - "whoami-tls.docker.localhost"
+  rules:
+    - backendRefs:
+      - name: whoami
+        port: 80
+        kind: Service
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: basic-auth
+

@@ -22,11 +22,6 @@ spec:
         - type: RequestRedirect
           requestRedirect:
             scheme: https
-        - type: ExtensionRef
-          extensionRef:
-            group: traefik.io
-            kind: Middleware
-            name: basic-auth
 ---
 kind: HTTPRoute
 apiVersion: gateway.networking.k8s.io/v1
@@ -56,6 +51,11 @@ spec:
           kind: Service
           group: ""
       filters:
+      - type: ExtensionRef
+        extensionRef:
+          group: traefik.io
+          kind: Middleware
+          name: basic-auth
       - type: RequestHeaderModifier
         requestHeaderModifier:
           add:
