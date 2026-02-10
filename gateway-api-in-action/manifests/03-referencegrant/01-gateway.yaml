@@ -9,7 +9,7 @@ spec:
     - name: websecure
       port: 8443
       protocol: HTTPS
-      hostname: "*.docker.localhost"
+      hostname: "team01.docker.localhost"
       allowedRoutes:
         namespaces:
           from: Selector # Cross Namespace for Routes
