@@ -42,14 +42,14 @@ kubectl apply --server-side --force-conflicts -f https://github.com/kubernetes-s
 kubectl create secret tls external-certs --namespace traefik --cert=./gateway-api-in-action/certs/external-crt.pem --key=./gateway-api-in-action/certs/external-key.pem
 kubectl create secret tls internal-certs --namespace traefik --cert=./gateway-api-in-action/certs/internal-crt.pem --key=./gateway-api-in-action/certs/internal-key.pem
 
+# Store the CA Root
+kubectl create configmap internal-ca --namespace traefik --from-file ca.crt=./gateway-api-in-action/certs/rootCA.pem
+
 # Create a namespace for the Team01
 kubectl create namespace team01
 kubectl label namespace team01 type=approved-ns --overwrite
 
 kubectl create secret tls external-certs --namespace team01 --cert=./gateway-api-in-action/certs/external-crt.pem --key=./gateway-api-in-action/certs/external-key.pem
-
-# Store the CA Root
-kubectl create configmap internal-ca --namespace traefik --from-file ca.crt=./gateway-api-in-action/certs/rootCA.pem
 
 # Install Traefik
 helm repo add --force-update traefik https://traefik.github.io/charts
@@ -71,7 +71,7 @@ kubectl delete -f ./gateway-api-in-action/manifests/01-tlsroute
 ```bash
 kubectl apply -f ./gateway-api-in-action/manifests/02-backendtlspolicy
 
-curl http://whoami-tls.docker.localhost/whoami -v
+curl http://whoami-tls.docker.localhost/whoami -v -L
 curl -u admin:admin -L -v  http://whoami-tls.docker.localhost/whoami --location-trusted
 
 kubectl delete -f ./gateway-api-in-action/manifests/02-backendtlspolicy
@@ -80,9 +80,12 @@ kubectl delete -f ./gateway-api-in-action/manifests/02-backendtlspolicy
 ### ReferenceGrant demo
 
 ```bash
+
+kubectl get ns team01 -o yaml
+
 kubectl apply -f ./gateway-api-in-action/manifests/03-referencegrant
 
-curl https://tea01.docker.localhost/ -v -k
+curl https://team01.docker.localhost/ -k
 
 kubectl delete -f ./gateway-api-in-action/manifests/03-referencegrant
 ```
@@ -90,16 +93,13 @@ kubectl delete -f ./gateway-api-in-action/manifests/03-referencegrant
 ### Migration demo
 
 ```bash
-## First step: Expose the backend with the Ingress
-
-```bash
 # Pre-requises
-kubectl apply -f ./gateway-api-in-action/manifests/04-migration/ingressclass
-kubectl apply -f ./gateway-api-in-action/manifests/04-migration/whoami
-kubectl apply -f ./gateway-api-in-action/manifests/04-migration/basic-auth
+kubectl apply -f ./gateway-api-in-action/manifests/04-migration/01-basic-auth
+kubectl apply -f ./gateway-api-in-action/manifests/04-migration/02-ingressclass
+kubectl apply -f ./gateway-api-in-action/manifests/04-migration/03-whoami
 
-# Deploy the ingress
-kubectl apply -f ./gateway-api-in-action/manifests/04-migration/ingress
+## First step: Expose the backend with the Ingress
+kubectl apply -f ./gateway-api-in-action/manifests/04-migration/04-ingress
 
 # Reach the backend successfully every second
 while true
@@ -111,11 +111,11 @@ done
 ## Second step: Expose the backend with a HTTPRoute
 
 # Deploy the ingress
-kubectl apply -f ./gateway-api-in-action/manifests/04-migration/gatewayapi
+kubectl apply -f ./gateway-api-in-action/manifests/04-migration/05-gatewayapi
 
 ## The ingress has a bigger name than the HTTPRoute, so the priority is higher: Traefik still uses the Ingress for the routing
 
 # Delete the ingress
-kubectl delete -f ./gateway-api-in-action/manifests/04-migration/ingress
+kubectl delete -f ./gateway-api-in-action/manifests/04-migration/04-ingress
 
 ```
