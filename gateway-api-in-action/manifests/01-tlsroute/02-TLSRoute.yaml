@@ -15,7 +15,6 @@ spec:
     # Attach the route to the by-default Traefik Gateway
     - name: traefik-gateway-tls
       kind: Gateway
-      sectionName: websecure-tcp
       group: gateway.networking.k8s.io
   # Define the hostname
   hostnames:

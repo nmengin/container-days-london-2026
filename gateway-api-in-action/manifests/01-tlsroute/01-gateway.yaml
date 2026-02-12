@@ -13,7 +13,5 @@ spec:
       allowedRoutes:
         namespaces:
           from: Same
-        kinds:
-        - kind: TLSRoute
       tls:
         mode: Passthrough

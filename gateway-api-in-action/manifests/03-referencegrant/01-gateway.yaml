@@ -16,8 +16,6 @@ spec:
           selector:
             matchLabels:
               type: approved-ns
-        kinds:
-        - kind: HTTPRoute
       tls:
         mode: Terminate
         certificateRefs:

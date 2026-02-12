@@ -10,23 +10,12 @@ spec:
       port: 8000
       protocol: HTTP
       hostname: "*.docker.localhost"
-      allowedRoutes:
-        namespaces:
-          from: Same
-        kinds:
-        - kind: HTTPRoute
     - name: websecure
       port: 8443
       protocol: HTTPS
       hostname: "*.docker.localhost"
-      allowedRoutes:
-        namespaces:
-          from: Same
-        kinds:
-        - kind: HTTPRoute
       tls:
         mode: Terminate
         certificateRefs:
         - kind: Secret
           name: external-certs
-          namespace: traefik
