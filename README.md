@@ -60,6 +60,13 @@ helm repo add --force-update traefik https://traefik.github.io/charts
 helm upgrade --install --namespace traefik traefik traefik/traefik -f ./gateway-api-in-action/traefik_values.yaml
 ```
 
+### Introduction
+
+```bash
+kubectl describe deployment traefik -n traefik
+gwctl describe gatewayclass traefik
+```
+
 ### TLSRoute demo
 
 ```bash
@@ -85,7 +92,6 @@ kubectl delete -f ./gateway-api-in-action/manifests/02-backendtlspolicy
 
 ```bash
 
-kubectl get ns ops-team01 -o yaml
 kubectl get ns dev-team01 -o yaml
 
 kubectl apply -f ./gateway-api-in-action/manifests/03-referencegrant
