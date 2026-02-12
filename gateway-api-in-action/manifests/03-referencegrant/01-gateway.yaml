@@ -6,7 +6,7 @@ metadata:
 spec:
   gatewayClassName: traefik
   listeners:
-    - name: websecure
+    - name: websecure-team01
       port: 8443
       protocol: HTTPS
       hostname: "team01.docker.localhost"
@@ -15,10 +15,10 @@ spec:
           from: Selector # Cross Namespace for Routes
           selector:
             matchLabels:
-              type: approved-ns
+              dev-team-name: "team01"
       tls:
         mode: Terminate
         certificateRefs:
         - kind: Secret
           name: external-certs
-          namespace: team01 # Cross Namespace for TLS Certificates
+          namespace: ops-team01 # Cross Namespace for TLS Certificates

@@ -45,11 +45,15 @@ kubectl create secret tls internal-certs --namespace traefik --cert=./gateway-ap
 # Store the CA Root
 kubectl create configmap internal-ca --namespace traefik --from-file ca.crt=./gateway-api-in-action/certs/rootCA.pem
 
-# Create a namespace for the Team01
-kubectl create namespace team01
-kubectl label namespace team01 type=approved-ns --overwrite
+# Create namespaces for the Team01
+kubectl create namespace ops-team01
+kubectl label namespace ops-team01 ops-team-ns=true --overwrite
 
-kubectl create secret tls external-certs --namespace team01 --cert=./gateway-api-in-action/certs/external-crt.pem --key=./gateway-api-in-action/certs/external-key.pem
+kubectl create namespace dev-team01
+kubectl label namespace dev-team01 dev-team-name=team01 --overwrite
+
+# Deploy the team01 TLS certs
+kubectl create secret tls external-certs --namespace ops-team01 --cert=./gateway-api-in-action/certs/external-crt.pem --key=./gateway-api-in-action/certs/external-key.pem
 
 # Install Traefik
 helm repo add --force-update traefik https://traefik.github.io/charts
@@ -81,7 +85,8 @@ kubectl delete -f ./gateway-api-in-action/manifests/02-backendtlspolicy
 
 ```bash
 
-kubectl get ns team01 -o yaml
+kubectl get ns ops-team01 -o yaml
+kubectl get ns dev-team01 -o yaml
 
 kubectl apply -f ./gateway-api-in-action/manifests/03-referencegrant
 
